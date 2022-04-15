@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <title>🐖评论采集器</title>
+        <meta name="description" content="评论区采集，抽奖自动化">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+    <body>
+        <!----- header----->
+        <header><h1><a href="/">🐖评论采集器</a></h1></header>
+        <!----- /header ----->
+
+        <!----- main ----->
+
+        <section>
+            <ol>
+                <ul>
+                    <li>
+                        <div class="label"><b>视频地址</b></div>
+                        <div class="cp_iptxt">
+                            <input type="text" name="vdo_url" id="vdo_url" placeholder="https://www.bilibili.com/video/xxxx">
+                            <i class="fa fa-film icon" aria-hidden="true"></i>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="label"><b>本期幸运观众</b></div>
+                        <div class="cp_iptxt">
+                            <input type="text" name="luk_usr" id="luk_usr" disabled>
+                            <i class="fa fa-user icon" aria-hidden="true"></i>
+                        </div>
+                    </li>
+                    <!-- <li>
+                        <div class="label"><b>UP主</b></div>
+                        <div class="cp_iptxt">
+                            <input type="text" name="up_name" id="up_name" placeholder="英雄下班后">
+                            <i class="fa fa-user icon" aria-hidden="true"></i>
+                        </div>
+                    </li> -->
+                </ul>
+            </ol>
+            <div id="submit" class="button" onclick="change_btn()">
+                <i class="fa fa-play icon" aria-hidden="true">开始采集</i>
+            </div>
+            <div id="status" class="fack-button">
+                <i class="fa fa-bar-chart icon" aria-hidden="true">当前状态:可用</i>
+            </div>
+            <div id="loading" class="fack-button inv">
+                <i class="fa fa-spinner icon" aria-hidden="true">当前状态:采集中</i>
+            </div>
+            <div id="done" class="fack-button inv">
+                <a href="#" id="dl"><i class="fa fa-download icon" aria-hidden="true">查看采集结果</i></a>
+            </div>
+            <div id="error" class="fack-button inv" disabled>
+                <i class="fa fa-exclamation icon" aria-hidden="true">采集器出错！</i>
+            </div>
+        </section>
+        <!----- /main ----->
+
+        <!----- footer ----->
+        <footer></footer>
+        <!----- /footer ----->
+
+        <script type="text/javascript">
+            function send_request(){
+                const date = new Date();
+                const Y = date.getFullYear();
+                const M = ("00" + (date.getMonth()+1)).slice(-2);
+                const D = ("00" + date.getDate()).slice(-2);
+                const h = ("00" + date.getHours()).slice(-2);
+                const m = ("00" + date.getMinutes()).slice(-2);
+                const s = ("00" + date.getSeconds()).slice(-2);
+                var file_name = 'res_' + Y + M + D + h + m + s + '.csv';
+
+                const vdo_url = document.getElementById('vdo_url').value;
+                var post_data = {
+                    'file_name': file_name,
+                    'vdo_url': vdo_url
+                };
+                
+                var post = $.ajax({
+                    url: '/scraper',
+                    type: 'post',
+                    data: JSON.stringify(post_data),
+                    async: false,
+                    contentType: "application/json"
+                }).done(function(response){                    
+                    if (response == 'error!') {
+                        $('#error').removeClass("inv");
+                        $('#status').addClass("inv");
+                    } else {
+                        var luk_usr = document.getElementById("luk_usr");
+                        luk_usr.setAttribute('value', response);
+                        $('#done').removeClass("inv");
+                        $('#loading').addClass("inv");
+                        link = document.getElementById('dl');
+                        url = "http://18.183.126.162/app/static/" + file_name;
+                        link.setAttribute('href', url);                            
+                    }
+                    console.log(response);
+                }).fail(function(){
+                    $('#done').removeClass("inv");
+                    $('#loading').addClass("inv");
+                });
+            }
+            function change_btn(){
+                $('#loading').removeClass("inv");
+                $('#status').addClass("inv");
+                send_request();
+            }
+        </script>
+    </body>
+</html>
+
+<style type="text/css">
+    body {
+        background-color: #87cefa;
+    }
+    header {
+        text-align: center;
+    }
+    a {
+        text-decoration: none;
+        color: #1b2538;
+    }
+    section {
+        margin: 0 20px;
+    }
+    ol {
+        text-align: center;
+        display: block;
+    }
+    li {
+        display: inline-block;
+        margin: 40px;
+        background-color: white;
+        padding: 50px;
+        border-radius: 10px;
+    }
+    .label {
+        text-align: left;
+        font-size: large;
+        margin-top: 0px;
+    }
+    .cp_iptxt {
+        position: relative;
+    }
+    .cp_iptxt input[type=text] {
+        font: 12px sans-serif;
+        box-sizing: border-box;
+        width: 300px;
+        padding: 0.3em 0;
+        transition: 0.3s;
+        border: 1px solid #1b2538;
+        border-radius: 4px;
+        outline: none;
+    }
+    .cp_iptxt input[type=text]:focus {
+        outline: 0;
+        border-color: #da3c41;
+    }
+    .cp_iptxt input[type=text] {
+       padding-left: 40px;
+    }
+    .cp_iptxt i {
+        top: -4px;
+        left: 0;
+        position: absolute;
+        transition: 0.3s;
+        padding: 9px 8px;
+    }
+    .cp_iptxt input[type=text]:focus + i {
+        color: #da3c41;
+    }
+    #res {
+        /*font: 12px sans-serif;*/
+        box-sizing: border-box;
+        width: 300px;
+        height: 30px;
+        /*padding: 0.3em 0;*/
+        transition: 0.3s;
+        border: 1px solid #1b2538;
+        border-radius: 4px;
+        outline: none;
+    }
+    .button {
+        width: 600px;
+        background-color: white;
+        text-align: center;
+        display: block;
+        margin: 0 auto;
+        border: 1px solid black;
+        border-radius: 10px;
+    }
+    .fack-button {
+        width: 600px;
+        background-color: white;
+        text-align: center;
+        display: block;
+        padding: 10px 0;
+        margin: 0 auto;
+        margin-top: 40px;
+        border: 1px solid black;
+        border-radius: 10px;
+    }
+    .button:hover {
+        cursor: pointer;
+    }
+    .button i {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    .inv {
+        display: none;
+    }
+</style>
