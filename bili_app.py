@@ -59,7 +59,7 @@ def scraper():
         for comment in comments:
             user = comment.find_element(by=By.CSS_SELECTOR, value='div.con > div.user > a').text
             content = comment.find_element(by=By.CSS_SELECTOR, value='div.con > p').text
-            up_name = f'英雄下班后'
+            up_name = [UP_USER_NAME]
             if user != up_name and user not in user_list:
                 res_list.append([user, content])
                 user_list.append(user)
